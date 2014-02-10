@@ -4,7 +4,7 @@
   <title><![CDATA[Zen Slapped]]></title>
   <link href="http://www.tomakehurst.com/atom.xml" rel="self"/>
   <link href="http://www.tomakehurst.com/"/>
-  <updated>2014-02-10T20:33:07+00:00</updated>
+  <updated>2014-02-10T20:47:38+00:00</updated>
   <id>http://www.tomakehurst.com/</id>
   <author>
     <name><![CDATA[Tom Akehurst]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[All-in-one test environments with JUnit]]></title>
-    <link href="http://www.tomakehurst.com/blog/2014/02/09/all-in-one-test-environments-with-junit/"/>
+    <link href="http://www.tomakehurst.com/all-in-one-test-environments-with-junit"/>
     <updated>2014-02-09T13:19:50+00:00</updated>
-    <id>http://www.tomakehurst.com/blog/2014/02/09/all-in-one-test-environments-with-junit</id>
+    <id>http://www.tomakehurst.com/all-in-one-test-environments-with-junit</id>
     <content type="html"><![CDATA[<p>A major benefit of building on the JVM is the wide range of infrastructure built natively for it. Combined with first-class support for threading this allows entire scaled-down environments to be run in-memory for testing. There are numerous advantages to this, including:</p>
 
 <ul>
@@ -170,9 +170,9 @@ couple of years has been on top of <a href="http://dropwizard.io">Dropwizard</a>
   
   <entry>
     <title type="html"><![CDATA[Introducing WireMock – an HTTP service stubbing library]]></title>
-    <link href="http://www.tomakehurst.com/blog/2012/08/18/introducing-wiremock-an-http-service-stubbing-library/"/>
+    <link href="http://www.tomakehurst.com/introducing-wiremock-an-http-service-stubbing-library"/>
     <updated>2012-08-18T13:14:45+01:00</updated>
-    <id>http://www.tomakehurst.com/blog/2012/08/18/introducing-wiremock-an-http-service-stubbing-library</id>
+    <id>http://www.tomakehurst.com/introducing-wiremock-an-http-service-stubbing-library</id>
     <content type="html"><![CDATA[<p><a href="http://wiremock.org">WireMock</a> is a tool that allows HTTP exchanges to be stubbed and verified. It does this by creating an actual HTTP endpoint, rather than by stubbing or mocking the HTTP client class. It can be used directly from within JUnit (or your weapon of choice), run as a standalone process or deployed into a container with the aim of covering off a wide range of testing scenarios. It has a JSON API so you don&rsquo;t have to be working in JVM language to make use of it, although there is a also a fluent
 Java API available if you are.</p>
 
