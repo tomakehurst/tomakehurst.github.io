@@ -1,0 +1,408 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>All-in-one test environments with JUnit - Zen Slapped</title>
+  <meta name="author" content="Tom Akehurst">
+
+  
+  <meta name="description" content="A major benefit of building on the JVM is the wide range of infrastructure built natively for it. Combined with first-class support for threading &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tomakehurst.com/blog/2014/02/09/all-in-one-test-environments-with-junit">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Zen Slapped" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36386229-3']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Zen Slapped</a></h1>
+  
+    <h2>Moments of enlightenment, delivered abruptly</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tomakehurst.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">All-in-one Test Environments With JUnit</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-09T13:19:50+00:00" pubdate data-updated="true">Feb 9<span>th</span>, 2014</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>A major benefit of building on the JVM is the wide range of infrastructure built natively for it. Combined with first-class support for threading this allows entire scaled-down environments to be run in-memory for testing. There are numerous advantages to this, including:</p>
+
+<ul>
+<li>Faster feedback</li>
+<li>Consistent environment across the team</li>
+<li>Easy debugging &ndash; set breakpoints anywhere in the stack</li>
+<li>Write and run integration tests for your adapters (as in <a href="http://www.natpryce.com/articles/000772.html">Ports and Adapters</a>) without needing a full environment</li>
+</ul>
+
+
+<!-- more -->
+
+
+<p>I&rsquo;ve been regularly testing apps against <a href="http://hsqldb.org/">HSQL</a> and <a href="http://www.h2database.com/">H2</a> for quite a while, and <a href="http://wiremock.org/">WireMock</a> was built specifically to provide in-memory REST services to test against. More recently I&rsquo;ve been running <a href="http://cassandra.apache.org/">Cassandra</a>, <a href="http://zookeeper.apache.org/">Zookeeper</a> and <a href="https://kafka.apache.org/">Kafka</a> (all Apache projects) in-situ with my apps. Virtually everything I&rsquo;ve built over the last
+couple of years has been on top of <a href="http://dropwizard.io">Dropwizard</a>, which fits well with this model given its embedded web server and relatively quick startup time.</p>
+
+<p>JUnit rules are an extremely handy way of managing environment components. For the unfamiliar, JUnit rule classes allow you to abstract away code you might otherwise put in your <code>@BeforeClass</code>, <code>@AfterClass</code>, <code>@Before</code> and <code>@After</code> methods. Most (all?) environment components are essentially daemons that need to be started, stopped and sometimes reset at the right moments, so rules are ideal wrappers to manage this lifecycle.</p>
+
+<p>WireMock and Dropwizard ship with rule implementations, so including them in your setup is as simple as:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Rule</span>
+</span><span class='line'><span class="kd">public</span> <span class="n">WireMockRule</span> <span class="n">wireMockRule</span> <span class="o">=</span> <span class="k">new</span> <span class="n">WireMockRule</span><span class="o">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@ClassRule</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="n">DropwizardAppRule</span><span class="o">&lt;</span><span class="n">MyAppConfiguration</span><span class="o">&gt;</span> <span class="n">RULE</span> <span class="o">=</span>
+</span><span class='line'>  <span class="k">new</span> <span class="n">DropwizardAppRule</span><span class="o">&lt;&gt;(</span><span class="n">MyApplication</span><span class="o">.</span><span class="na">class</span><span class="o">,</span>
+</span><span class='line'>                            <span class="s">&quot;/path/to/testconfig.yaml&quot;</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For tools that don&rsquo;t come with their own rules, creating them can be achieved by subclassing JUnit&rsquo;s ExternalResource class e.g.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">SomeHipDbRule</span> <span class="kd">extends</span> <span class="n">ExternalResource</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="n">SomeHipDb</span> <span class="n">db</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HipDb</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">before</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Throwable</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">db</span><span class="o">.</span><span class="na">init</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">db</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">after</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">db</span><span class="o">.</span><span class="na">shutdown</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I find it useful to hang test utility methods here too e.g.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">clearData</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">db</span><span class="o">.</span><span class="na">deleteAllData</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">createSchema</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">db</span><span class="o">.</span><span class="na">createSchema</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you have many more than a couple of components in your environment, the number of rules required can become a bit unwieldy. Also, including each rule as a class field as in the above examples gives you no control over the order in which they&rsquo;re evaluated, which can be a problem if there are dependencies between the components (e.g. Kafka requires a Zookeeper server). JUnit&rsquo;s RuleChain solves both of these problems. On my current project we&rsquo;ve created an &ldquo;environment&rdquo; class, also a test rule, which composes the individual components and imposes a specific ordering. This looks a bit like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyTestEnvironment</span> <span class="kd">implements</span> <span class="n">TestRule</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">final</span> <span class="n">RuleChain</span> <span class="n">ruleChain</span> <span class="o">=</span>
+</span><span class='line'>        <span class="n">RuleChain</span><span class="o">.</span><span class="na">outerRule</span><span class="o">(</span><span class="k">new</span> <span class="n">ZookeeperRule</span><span class="o">())</span>
+</span><span class='line'>                 <span class="o">.</span><span class="na">around</span><span class="o">(</span><span class="k">new</span> <span class="n">KafkaRule</span><span class="o">())</span>
+</span><span class='line'>                 <span class="o">.</span><span class="na">around</span><span class="o">(</span><span class="k">new</span> <span class="n">HipDbRule</span><span class="o">());</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="n">Statement</span> <span class="nf">apply</span><span class="o">(</span><span class="n">Statement</span> <span class="n">base</span><span class="o">,</span> <span class="n">Description</span> <span class="n">description</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">ruleChain</span><span class="o">.</span><span class="na">apply</span><span class="o">(</span><span class="n">base</span><span class="o">,</span> <span class="n">description</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Gotchas</h2>
+
+<p>Many libraries aren&rsquo;t built with this kind of usage in mind, so a little bit of extra complexity is sometimes required. Issues I&rsquo;ve encountered are:</p>
+
+<p>Cassandra manages some state in static variables, meaning that it survives restarts inside a single JVM. We worked around this by only starting Cassandra once per test run (by making the Cassandra server a static member of the rule and only starting it if it&rsquo;s not already running).</p>
+
+<p>You&rsquo;ll be pulling lots of extra dependencies, and there will inevitably be clashes. I&rsquo;ve been making heavy use of <code>mvn dependency:tree</code> while working on this. I&rsquo;d like to find a good way to do cross-platform JVM forking as a solution to this and the previous point.</p>
+
+<p>Where one component depends on another and startup happens on a background thread it&rsquo;s possible to start in a bad state. Polling and sleeps are often adequate if not great solutions to this.</p>
+
+<p>Some servers have large or volatile startup times. I&rsquo;ve found that the Kafka + Zookeeper combination can take between 10 seconds and over minute to stabilise, which makes it hard to get into a TDD groove.</p>
+
+<p>Despite these obstacles I&rsquo;ve found that the ability to run an embedded test environment is a valuable addition to a project.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tom Akehurst</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-09T13:19:50+00:00" pubdate data-updated="true">Feb 9<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/testing/'>Testing</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://tomakehurst.com/blog/2014/02/09/all-in-one-test-environments-with-junit/" data-via="TomAkehurst" data-counturl="http://tomakehurst.com/blog/2014/02/09/all-in-one-test-environments-with-junit/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/08/18/introducing-wiremock-an-http-service-stubbing-library/" title="Previous Post: Introducing WireMock – an HTTP service stubbing library">&laquo; Introducing WireMock – an HTTP service stubbing library</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/02/09/all-in-one-test-environments-with-junit/">All-in-one test environments with JUnit</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/08/18/introducing-wiremock-an-http-service-stubbing-library/">Introducing WireMock – an HTTP service stubbing library</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/tomakehurst">@tomakehurst</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'tomakehurst',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Tom Akehurst -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'zenslapped';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tomakehurst.com/blog/2014/02/09/all-in-one-test-environments-with-junit/';
+        var disqus_url = 'http://tomakehurst.com/blog/2014/02/09/all-in-one-test-environments-with-junit/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Introducing WireMock – an HTTP service stubbing library - Zen Slapped</title>
+  <meta name="author" content="Tom Akehurst">
+
+  
+  <meta name="description" content="WireMock is a tool that allows HTTP exchanges to be stubbed and verified. It does this by creating an actual HTTP endpoint, rather than by stubbing &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tomakehurst.com/blog/2012/08/18/introducing-wiremock-an-http-service-stubbing-library">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Zen Slapped" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36386229-3']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Zen Slapped</a></h1>
+  
+    <h2>Moments of enlightenment, delivered abruptly</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tomakehurst.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Introducing WireMock – an HTTP Service Stubbing Library</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-18T13:14:45+01:00" pubdate data-updated="true">Aug 18<span>th</span>, 2012</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="http://wiremock.org">WireMock</a> is a tool that allows HTTP exchanges to be stubbed and verified. It does this by creating an actual HTTP endpoint, rather than by stubbing or mocking the HTTP client class. It can be used directly from within JUnit (or your weapon of choice), run as a standalone process or deployed into a container with the aim of covering off a wide range of testing scenarios. It has a JSON API so you don&rsquo;t have to be working in JVM language to make use of it, although there is a also a fluent
+Java API available if you are.</p>
+
+<!-- more -->
+
+
+<p>Other handy stuff it&rsquo;ll do includes conditional forwarding of requests to other services (enabling proxy/intercept), record/playback of stubs, fault injection, stateful behaviour and response delays.</p>
+
+<h2>Unit testing</h2>
+
+<p>While it&rsquo;s possible to mock your HTTP client for unit testing with something like JMock or Mockito, I&rsquo;ve found this to be problematic in practice. For example, how will my code cope with a 503 response? What if the Content-Type header doesn&rsquo;t match the body? Does it follow redirects (or not) as expected? Using mock objects, you have to attempt to figure out how your client will react to each of these scenarios and replicate this in your mock/stub setup. Given HTTP&rsquo;s complexity, it&rsquo;s
+pretty likely you&rsquo;ll get some of it wrong. This is really just an example of why you <a href="http://www.mockobjects.com/2007/04/test-smell-everything-is-mocked.html">shouldn&rsquo;t mock types you don&rsquo;t own</a>.</p>
+
+<p>Writing unit tests with WireMock is very straightforward using the fluent Java API. If using JUnit 4.x a @Rule can be added to your test to manage the startup, shutdown and reset of the server between tests.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Rule</span>
+</span><span class='line'><span class="kd">public</span> <span class="n">WireMockRule</span> <span class="n">wireMockRule</span> <span class="o">=</span> <span class="k">new</span> <span class="n">WireMockRule</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@Test</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">exampleTest</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>     <span class="n">stubFor</span><span class="o">(</span><span class="n">get</span><span class="o">(</span><span class="n">urlEqualTo</span><span class="o">(</span><span class="s">&quot;/my/resource&quot;</span><span class="o">))</span>
+</span><span class='line'>        <span class="o">.</span><span class="na">withHeader</span><span class="o">(</span><span class="s">&quot;Accept&quot;</span><span class="o">,</span> <span class="n">equalTo</span><span class="o">(</span><span class="s">&quot;text/plain&quot;</span><span class="o">))</span>
+</span><span class='line'>           <span class="o">.</span><span class="na">willReturn</span><span class="o">(</span><span class="n">aResponse</span><span class="o">()</span>
+</span><span class='line'>                <span class="o">.</span><span class="na">withStatus</span><span class="o">(</span><span class="mi">200</span><span class="o">)</span>
+</span><span class='line'>                <span class="o">.</span><span class="na">withHeader</span><span class="o">(</span><span class="s">&quot;Content-Type&quot;</span><span class="o">,</span> <span class="s">&quot;text/plain&quot;</span><span class="o">)</span>
+</span><span class='line'>                <span class="o">.</span><span class="na">withBody</span><span class="o">(</span><span class="s">&quot;Some content&quot;</span><span class="o">)));</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">Result</span> <span class="n">result</span> <span class="o">=</span> <span class="n">myHttpServiceCallingObject</span><span class="o">.</span><span class="na">doSomething</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">assertTrue</span><span class="o">(</span><span class="n">result</span><span class="o">.</span><span class="na">wasSuccessFul</span><span class="o">());</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">verify</span><span class="o">(</span><span class="n">postRequestedFor</span><span class="o">(</span><span class="n">urlMatching</span><span class="o">(</span><span class="s">&quot;/my/resource/[a-z0-9]+&quot;</span><span class="o">))</span>
+</span><span class='line'>        <span class="o">.</span><span class="na">withRequestBody</span><span class="o">(</span><span class="n">matching</span><span class="o">(</span><span class="s">&quot;.*1234.*&quot;</span><span class="o">))</span>
+</span><span class='line'>        <span class="o">.</span><span class="na">withHeader</span><span class="o">(</span><span class="s">&quot;Content-Type&amp;&quot;</span><span class="o">,</span> <span class="n">notMatching</span><span class="o">(</span><span class="s">&quot;application/json&quot;</span><span class="o">)));</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Integrated testing</h2>
+
+<p>When testing an application end to end, I&rsquo;ve found HTTP stubbing to be immensely useful. The real web services we typically have to integrate with are often slow, unreliable, unavailable in certain environments, or won&rsquo;t support automated creation of test data. Also, it&rsquo;s usually difficult to generate error responses on-demand. A consequence of these issues that I&rsquo;ve often observed is that tests at this level only cover happy paths and are very non-specific in their assertions.</p>
+
+<p>Running all your acceptance tests against real services all the time tends to be very slow, and personally I tend to agree with Dan Bodart&rsquo;s view that <a href="http://dan.bodar.com/2012/02/28/crazy-fast-build-times-or-when-10-seconds-starts-to-make-you-nervous/">the value of tests decreases rapidly as their execution time increases</a>.</p>
+
+<p>WireMock supports a variety of integrated testing scenarios. It can be started as a standalone process and have stubs configured via a JSON API (file and HTTP based). It can also be wrapped up in a WAR file if you&rsquo;d prefer to deploy it into an existing web container.</p>
+
+<p>Starting WireMock standalone is as simple as this:</p>
+
+<p>java -jar wiremock-1.24-standalone.jar</p>
+
+<p>Then you can add some stubs via the JSON API (file or HTTP):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;request&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nt">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;GET&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="nt">&quot;urlPattern&quot;</span><span class="p">:</span> <span class="s2">&quot;/some/resource/\d+&quot;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="nt">&quot;response&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nt">&quot;status&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+</span><span class='line'>        <span class="nt">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;Some content&quot;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>More details are available on Github: <a href="https://github.com/tomakehurst/wiremock.">https://github.com/tomakehurst/wiremock.</a> Java artifacts are available in the Maven central repo.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tom Akehurst</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-18T13:14:45+01:00" pubdate data-updated="true">Aug 18<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/testing/'>Testing</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://tomakehurst.com/blog/2012/08/18/introducing-wiremock-an-http-service-stubbing-library/" data-via="TomAkehurst" data-counturl="http://tomakehurst.com/blog/2012/08/18/introducing-wiremock-an-http-service-stubbing-library/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/02/09/all-in-one-test-environments-with-junit/" title="Next Post: All-in-one test environments with JUnit">All-in-one test environments with JUnit &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/02/09/all-in-one-test-environments-with-junit/">All-in-one test environments with JUnit</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/08/18/introducing-wiremock-an-http-service-stubbing-library/">Introducing WireMock – an HTTP service stubbing library</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/tomakehurst">@tomakehurst</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'tomakehurst',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Tom Akehurst -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'zenslapped';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tomakehurst.com/blog/2012/08/18/introducing-wiremock-an-http-service-stubbing-library/';
+        var disqus_url = 'http://tomakehurst.com/blog/2012/08/18/introducing-wiremock-an-http-service-stubbing-library/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
