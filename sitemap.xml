@@ -4,26 +4,30 @@
         <loc>
             http://www.tomakehurst.com/introducing-wiremock-an-http-service-stubbing-library
         </loc>
-        <lastmod>2014-02-09T16:42:11+00:00</lastmod>
+        <lastmod>2014-04-30T17:30:23+01:00</lastmod>
     </url>
     <url>
         <loc>http://www.tomakehurst.com/all-in-one-test-environments-with-junit</loc>
-        <lastmod>2014-02-10T20:32:19+00:00</lastmod>
+        <lastmod>2014-04-30T17:30:23+01:00</lastmod>
+    </url>
+    <url>
+        <loc>http://www.tomakehurst.com/microservices-and-monoliths-is-there-a-third-way</loc>
+        <lastmod>2014-05-10T20:54:31+01:00</lastmod>
     </url>
     <url>
         <loc>http://www.tomakehurst.com/about/</loc>
-        <lastmod>2014-02-10T20:07:05+00:00</lastmod>
+        <lastmod>2014-04-30T17:30:23+01:00</lastmod>
     </url>
     <url>
         <loc>http://www.tomakehurst.com/blog/archives/</loc>
-        <lastmod>2014-02-10T20:32:19+00:00</lastmod>
+        <lastmod>2014-05-10T20:54:31+01:00</lastmod>
     </url>
     <url>
         <loc>http://www.tomakehurst.com/</loc>
-        <lastmod>2014-02-10T20:32:19+00:00</lastmod>
+        <lastmod>2014-05-10T20:54:31+01:00</lastmod>
     </url>
     <url>
         <loc>http://www.tomakehurst.com/robots.txt</loc>
-        <lastmod>2014-02-09T12:57:41+00:00</lastmod>
+        <lastmod>2014-04-30T17:30:23+01:00</lastmod>
     </url>
 </urlset>

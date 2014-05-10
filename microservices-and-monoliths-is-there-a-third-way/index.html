@@ -1,0 +1,342 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Microservices and monoliths - is there a third way? - Zen Slapped</title>
+  <meta name="author" content="Tom Akehurst">
+
+  
+  <meta name="description" content="TL;DR: Microservices vs. monolith is a false dichotomy. Microservices are gaining a lot of interest at the moment as an antidote to the limitations &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.tomakehurst.com/microservices-and-monoliths-is-there-a-third-way">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="http://feeds.feedburner.com/tomakehurst" rel="alternate" title="Zen Slapped" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36386229-3']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Zen Slapped</a></h1>
+  
+    <h2>Moments of enlightenment, delivered abruptly</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="http://feeds.feedburner.com/tomakehurst" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.tomakehurst.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Microservices and Monoliths - Is There a Third Way?</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-10T12:00:00+01:00" pubdate data-updated="true">May 10<span>th</span>, 2014</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><strong>TL;DR:</strong> Microservices vs. monolith is a false dichotomy.</p>
+
+<p>Microservices are gaining a lot of interest at the moment as an antidote to the limitations of monolithic application architecture. But as with all things in software (and life in general) they come at a significant cost. Arguably, monoliths and microservices occupy extreme points in a design space, and I&rsquo;ve recently been wondering about other strategies that could yield similar benefits but with different tradeoffs.</p>
+
+<!-- more -->
+
+
+<h2>Essentials</h2>
+
+<p>Microservices are independently deployable, which means (provided other design constraints are met) that teams can ship new features independently from one another, avoiding the coordination cost associated with merging code into a single artefact. Services should be single purpose (and therefore have only one reason at a time to change), so the release of feature A should never be delayed while feature B is still in progress.</p>
+
+<p>Splitting system components into separate processes that can only communicate via a network forces a greater degree of decoupling than is typical between components within a monolith. Rich Hickey commented in a presentation (which I can&rsquo;t find now, annoyingly) that microservices encourage component interfaces based on immutable data with pass-by-value semantics, which is impossible to achieve in most languages (Clojure being an exception) other than by self-imposed discipline. An avoidance of shared state (e.g. two services accessing the same DB schema) reinforces this separation.</p>
+
+<p>This decoupling enables much greater freedom in technology choices. Services with APIs based entirely on platform-agnostic standards such as HTTP and JSON can be replaced transparently with something based on an totally different tech stack. So when you&rsquo;ve passed Peak NodeJS and want to move onto the next big thing, you can manage the transition incrementally rather doing a total re-write (which you should <a href="http://www.joelonsoftware.com/articles/fog0000000069.html">Never Do</a>, right?).</p>
+
+<p>Finally, microservices are by default more operationally transparent than modules within a monolith. Of course it&rsquo;s possible to instrument and monitor individual components in a single app, but it&rsquo;s not common practice to do so and it requires explicit effort. By comparison, services that communicate via HTTP or messaging give away plenty of operational data (log files, messages on a topic etc.) for free.</p>
+
+<h2>Tradeoffs</h2>
+
+<p>Benjamin Wootton&rsquo;s post <a href="http://contino.co.uk/blog/2013/03/31/microservices-no-free-lunch.html">&ldquo;Microservices &ndash; Not a free lunch!&rdquo;</a> does a good job of explaining the additional costs of a microservice architecture, so I&rsquo;ll merely summarise the points I think are relevant.</p>
+
+<p>Systems distributed via a network are subject to high latency and numerous failure modes absent when in-process. While some degree of distribution is inevitable in modern applications, microservices could be said to be <em>maximally distributed</em>, so these issues have to be considered for practically every bit of behaviour, even where there&rsquo;s no benefit in terms of scaling or resilience.</p>
+
+<p>A corollary of the prevous point is that all (or most) service interactions should be asynchronous if you want to build a high performing and available system. However, async programming is hard, and even harder to test effectively. Asynchronous systems are more likely to develop <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.35.7368&amp;rep=rep1&amp;type=pdf">emergent behaviours</a> that are near impossible to predict or test for, and that will almost certainly burn you in production at some point.</p>
+
+<p>Tolerating high and unpredicatable latency in practice usually means exposing coarse-grained APIs, which isn&rsquo;t always ideal.</p>
+
+<p>Finally, moving features between services is far more costly than between modules in a single program, particularly if those services were built on different technologies.</p>
+
+<p>There are some other technologies that appear to exhibit at least some of the benefits described above, while potentially mitigating some of the problems. I&rsquo;ll caveat by saying that I&rsquo;ve never built or run anything with these, so I can&rsquo;t personally vouch for whether they live up to their marketing!</p>
+
+<h2>Erlang</h2>
+
+<p><a href="http://martinfowler.com/articles/microservices.html">Martin Fowler&rsquo;s microservices article</a> mentions in passing similarities to <a href="http://www.erlang.org/">Erlang</a>. Erlang supports hot code swapping, inter-process communication via asynchronous message passing and distribution over a network. This ticks many of the same boxes as microservices &ndash; independently deployable components, component boundaries enforced by immutable, data-centric communication protocols, no shared state.</p>
+
+<p>A big additional advantage is that (many) processes can be physically co-located, avoiding the pain of distribution when it isn&rsquo;t required. Even when it is, Erlang OTP provides a good base for building in graceful failure recovery.</p>
+
+<p>Erlang&rsquo;s model is of a much lower level of abstraction than a typical microservice&rsquo;s, however. It imposes no inter-process messaging semantics beyond async, immutable message passing, whereas microservices are often resource-oriented (i.e. HTTP). As a result, an Erlang based system would have no more natural transparency than a typical monolith.</p>
+
+<p>There are both benefits and drawbacks to targetting a single platform like Erlang. Clearly, this makes refactoring much easier, but on the other hand you are constrained to a single set of languages, programming models and runtime characteristics which might be rendered obsolete (or suboptimal at least) when something radically different comes along.</p>
+
+<h2>NetKernel</h2>
+
+<p><a href="http://1060research.com/products">NetKernel</a> is a less well known but nonetheless very interesting option in this space. It bills itself as a &ldquo;Uniform Resource Engine&rdquo; and is the result of a piece of research on the web and the reasons for its outstanding success (in a somewhat similar vein to Roy Fielding&rsquo;s work on REST).</p>
+
+<p>Systems are built on NetKernel by composing resources exposed by modules. Resources are addressed (and address each other) via what could be considered a superset of HTTP. A killer feature that this enables is highy efficient caching &ndash; since relationships between resources are transparent to NetKernel, it can walk the dependency graph when a resource&rsquo;s state changes and invalidate cache entries where necessary (implying that state can otherwise be cached indefinitely). An additional benefit is that NetKernel can surface that transparency to system administrators, and provides various visualisations for things like resource utilisation and call paths.</p>
+
+<p>NetKernel modules are hot deployable and as with Erlang, many can be co-located on the same host, making independent releases a possibility while not forcing maximal distribution to achieve it. In-process communication can be done synchronously, alleviating the overhead of going fully async. However, NetKernel can be run distributed, communicating via a custom network protocol that preserves cache coherence between nodes.</p>
+
+<p>Like with Erlang, NetKernel limits you the the languages and APIs of a single platform, in this case the JVM, with all the benefits and drawbacks that implies.</p>
+
+<p><a href="http://durablescope.blogspot.co.uk/2014/05/why-microservices-and-not-yoctoservices.html">&ldquo;Why Microservices and not Yoctoservices?&rdquo;</a> is a thoughtful post from one of NetKernel&rsquo;s creators on the problems of service sizing and the solutions offered by resource oriented computing.</p>
+
+<h2>Others?</h2>
+
+<p>I considered including <a href="http://www.osgi.org/Technology/WhatIsOSGi">OSGi</a> in this post due to its support for hot deployable modules into a single process. However, intra-module communication is via direct calls between objects, which fails the decoupling test in my opinion. Also nobody I&rsquo;ve spoken to with practical experience of OSGi has a good word to say about it.</p>
+
+<p>Containers (e.g. <a href="https://www.docker.io/">Docker</a>) and container-based PaaS products (e.g. <a href="http://cloudfoundry.org/">Cloud Foundry</a> and <a href="https://www.openshift.com/">OpenShift</a>) are on the rise as a solution for hosting microservices. Perhaps (and I&rsquo;m speculating wildly now) some of these will evolve to support service locality awareness, such that services could choose to expose synchronous, fine grained APIs to co-located clients with reduced error handling requirements.</p>
+
+<h2>Conclusion</h2>
+
+<p>The debate around microservices is yielding valuable insights about how we build sustainable and scalable systems. I hope over time these will give rise to a more nuanced range of solutions than the current monolith vs. microservices dichotomy, much like the NoSQL movement did for data persistence.</p>
+
+<p>Many thanks to Matthew Skelton, Peter Rodgers and Rob Elliot for helping me improve this post.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tom Akehurst</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-10T12:00:00+01:00" pubdate data-updated="true">May 10<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/categories/architecture/'>Architecture</a>, <a class='category' href='/categories/erlang/'>Erlang</a>, <a class='category' href='/categories/microservices/'>Microservices</a>, <a class='category' href='/categories/netkernel/'>NetKernel</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://www.tomakehurst.com/microservices-and-monoliths-is-there-a-third-way" data-via="TomAkehurst" data-counturl="http://www.tomakehurst.com/microservices-and-monoliths-is-there-a-third-way" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/all-in-one-test-environments-with-junit" title="Previous Post: All-in-one test environments with JUnit">&laquo; All-in-one test environments with JUnit</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/microservices-and-monoliths-is-there-a-third-way">Microservices and monoliths - is there a third way?</a>
+      </li>
+    
+      <li class="post">
+        <a href="/all-in-one-test-environments-with-junit">All-in-one test environments with JUnit</a>
+      </li>
+    
+      <li class="post">
+        <a href="/introducing-wiremock-an-http-service-stubbing-library">Introducing WireMock – an HTTP service stubbing library</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/tomakehurst">@tomakehurst</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'tomakehurst',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Tom Akehurst -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'zenslapped';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.tomakehurst.com/microservices-and-monoliths-is-there-a-third-way';
+        var disqus_url = 'http://www.tomakehurst.com/microservices-and-monoliths-is-there-a-third-way';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
