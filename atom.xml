@@ -4,7 +4,7 @@
   <title><![CDATA[Zen Slapped]]></title>
   <link href="http://www.tomakehurst.com/atom.xml" rel="self"/>
   <link href="http://www.tomakehurst.com/"/>
-  <updated>2014-08-07T13:18:48+01:00</updated>
+  <updated>2015-02-22T21:00:41+00:00</updated>
   <id>http://www.tomakehurst.com/</id>
   <author>
     <name><![CDATA[Tom Akehurst]]></name>
@@ -12,6 +12,36 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Surviving SOA with Continuous Delivery (and WireMock)]]></title>
+    <link href="http://www.tomakehurst.com/surviving-soa-with-continuous-delivery-and-wiremock"/>
+    <updated>2015-02-22T20:42:19+00:00</updated>
+    <id>http://www.tomakehurst.com/surviving-soa-with-continuous-delivery-and-wiremock</id>
+    <content type="html"><![CDATA[<p>I gave a talk at the London Continuous Delivery meet-up about a recent client project involving the rescue of a UI application build that a previous team had failed to make much progress with. The rest of the system was built on an old-fashioned, heavyweight, big-vendor SOA stack, and although the development process was ostensibly Scrum, we found that in practice it lacked many of the attributes necessary for effective agile delivery.</p>
+
+<p>In the talk I summarised the challenges we faced the techniques we used to isolate ourselves from dependencies, manage quality and integration risk, and deliver working code in regular, small iterations.</p>
+
+<!-- more -->
+
+
+<p>The full video of the talk is here:</p>
+
+<iframe src="http://www.tomakehurst.com//player.vimeo.com/video/119542461" width="850" height="478" frameborder="0" allowfullscreen="allowfullscreen"></iframe>
+
+
+<p><a href="https://vimeo.com/119542461">February 2015 &ndash; Tom Akehurst &ndash; Surviving SOA: Delivering (somewhat) continuously on a hostile planet</a></p>
+
+<p>The slides I used are here:</p>
+
+<iframe src="http://www.tomakehurst.com//www.slideshare.net/slideshow/embed_code/44605849" width="850" height="710" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe>
+
+
+<p> <div style="margin-bottom:5px"> <strong> <a href="http://www.tomakehurst.com//www.slideshare.net/TomAkehurst/surviving-soa-delivering-somewhat" title="Surviving SOA - delivering (somewhat) continuously on a hostile planet" target="_blank">Surviving SOA &ndash; delivering (somewhat) continuously on a hostile planet</a> </strong></div></p>
+
+<p>Many thanks to <a href="https://twitter.com/matthewpskelton">Matthew Skelton</a> for inviting me to speak, and to <a href="https://twitter.com/EqualExperts">Equal Experts</a> for hosting the meet-up.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Microservices and monoliths - is there a third way?]]></title>
